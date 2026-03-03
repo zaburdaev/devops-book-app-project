@@ -13,7 +13,7 @@ provider "aws" {
 
 # Группа безопасности (открываем порты)
 resource "aws_security_group" "books_sg" {
-  name        = "books-app-sg-unique"
+  name        = "books-app-sg-vitaliy"
   description = "Allow SSH and Web traffic"
 
   ingress {

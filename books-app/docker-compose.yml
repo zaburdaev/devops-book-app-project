@@ -1,0 +1,45 @@
+services:
+  db:
+    image: postgres:16-alpine
+    container_name: booksdb
+    environment:
+      POSTGRES_DB: booksdb
+      POSTGRES_USER: booksuser
+      POSTGRES_PASSWORD: bookspass
+    volumes:
+      - db_data:/var/lib/postgresql/data
+      - ./db/schema.sql:/docker-entrypoint-initdb.d/01_schema.sql
+      - ./db/seed.sql:/docker-entrypoint-initdb.d/02_seed.sql
+    ports:
+      - "5432:5432"
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U booksuser -d booksdb"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
+  backend:
+    build: ./backend
+    container_name: books-backend
+    environment:
+      DB_HOST: db
+      DB_PORT: 5432
+      DB_NAME: booksdb
+      DB_USER: booksuser
+      DB_PASSWORD: bookspass
+    ports:
+      - "5000:5000"
+    depends_on:
+      db:
+        condition: service_healthy
+
+  frontend:
+    build: ./frontend
+    container_name: books-frontend
+    ports:
+      - "8080:80"
+    depends_on:
+      - backend
+
+volumes:
+  db_data:

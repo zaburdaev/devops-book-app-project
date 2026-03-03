@@ -60,7 +60,7 @@ resource "aws_instance" "books_server" {
 
   tags = {
     Name = "BooksAppServer"
-    Environment = "DevOps-Project"  #1
+    Owner = "vitaliy"
   }
 }
 

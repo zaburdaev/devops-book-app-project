@@ -14,24 +14,25 @@ terraform {
 }
 
 provider "aws" {
-  region = "eu-central-1" # Франкфурт
+  region = "eu-central-1"
 }
 
-# Используем уже существующий key pair (не создаём заново)
-data "aws_key_pair" "deployer" {
-  key_name = "deployer-key"
+# Создаём и управляем key pair
+resource "aws_key_pair" "deployer" {
+  key_name   = "deployer-key"
+  public_key = file("${path.module}/deployer.pub")
 }
 
-# Используем уже существующую security group (не создаём заново)
+# ЧИТАЕМ уже существующую SG (НЕ создаём и НЕ удаляем)
 data "aws_security_group" "books_sg" {
   id = "sg-0b2d5e7e09fb0ad38"
 }
 
-# Создаем сервер EC2
+# EC2 сервер, привязанный к существующей SG
 resource "aws_instance" "books_server" {
-  ami           = "ami-0084a47cc718c111a" # Ubuntu 22.04 LTS
+  ami           = "ami-0084a47cc718c111a"
   instance_type = "t3.small"
-  key_name      = data.aws_key_pair.deployer.key_name
+  key_name      = aws_key_pair.deployer.key_name
 
   vpc_security_group_ids = [data.aws_security_group.books_sg.id]
 
@@ -41,7 +42,6 @@ resource "aws_instance" "books_server" {
   }
 }
 
-# Выводим IP сервера
 output "instance_public_ip" {
   value = aws_instance.books_server.public_ip
 }

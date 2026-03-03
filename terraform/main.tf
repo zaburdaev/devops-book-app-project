@@ -48,7 +48,7 @@ resource "aws_security_group" "books_sg" {
 # Создаем сервер EC2
 resource "aws_instance" "books_server" {
   ami           = "ami-0084a47cc718c111a" # Ubuntu 22.04 LTS
-  instance_type = "t2.micro"             # Free Tier
+  instance_type = "t3.small"             #t3.small
 
   vpc_security_group_ids = [aws_security_group.books_sg.id]
 

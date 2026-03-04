@@ -16,6 +16,11 @@
         state: started
         enabled: yes
 
+    - name: Copy DB scripts to server
+      copy:
+        src: ./books-app/db/
+        dest: /home/ubuntu/db/
+
     - name: Copy docker-compose.yml to server
       copy:
         src: ./books-app/docker-compose.yml

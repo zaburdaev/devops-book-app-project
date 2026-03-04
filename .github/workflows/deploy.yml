@@ -19,12 +19,15 @@ on:
 jobs:
   deploy:
     runs-on: ubuntu-latest
+    permissions:
+      contents: write
     if: ${{ github.event.workflow_run.conclusion == 'success' || github.event_name == 'workflow_dispatch' }}
     steps:
       - name: Checkout code
         uses: actions/checkout@v3
         with:
           token: ${{ secrets.GITHUB_TOKEN }}
+          persist-credentials: true
 
       - name: Update header if triggered via ChatOps
         if: github.event_name == 'workflow_dispatch' && github.event.inputs.header_text != ''
@@ -60,5 +63,5 @@ jobs:
         run: |
           curl -s -X POST "https://api.telegram.org/bot${{ secrets.TELEGRAM_BOT_TOKEN }}/sendMessage" \
             -d chat_id=${{ secrets.TELEGRAM_CHAT_ID }} \
-            -d text="❌ *Deploy Failed! %0A⚠️ Check GitHub Actions logs: https://github.com/${{ github.repository }}/actions" \
+            -d text="❌ *Deploy Failed!* %0A⚠️ Check GitHub Actions logs: https://github.com/${{ github.repository }}/actions" \
             -d parse_mode="Markdown"

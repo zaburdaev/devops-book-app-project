@@ -2,9 +2,9 @@ name: Step 1 - Terraform Infrastructure
 
 on:
   push:
-    branches: [ main ]
+    branches: [main]
     paths:
-      - 'terraform/**'
+      - "terraform/**"
   workflow_dispatch:
 
 jobs:
@@ -30,3 +30,19 @@ jobs:
         env:
           AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
           AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+
+      - name: Send Telegram notification on Success
+        if: success()
+        run: |
+          curl -s -X POST "https://api.telegram.org/bot${{ secrets.TELEGRAM_BOT_TOKEN }}/sendMessage" \
+            -d chat_id=${{ secrets.TELEGRAM_CHAT_ID }} \
+            -d text="✅ *Infrastructure Ready!* %0A🏗️ Project: Books App %0A🚀 Status: EC2 Instance is up and running. %0A🔗 IP: ${{ secrets.SERVER_IP }} %0A👤 User: ${{ github.actor }}" \
+            -d parse_mode="Markdown"
+
+      - name: Send Telegram notification on Failure
+        if: failure()
+        run: |
+          curl -s -X POST "https://api.telegram.org/bot${{ secrets.TELEGRAM_BOT_TOKEN }}/sendMessage" \
+            -d chat_id=${{ secrets.TELEGRAM_CHAT_ID }} \
+            -d text="❌ *Infrastructure Failed!* %0A⚠️ Check GitHub Actions logs: https://github.com/${{ github.repository }}/actions" \
+            -d parse_mode="Markdown"

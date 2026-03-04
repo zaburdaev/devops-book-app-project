@@ -21,6 +21,11 @@
         src: ./books-app/db/
         dest: /home/ubuntu/db/
 
+    - name: Copy frontend files to server
+      copy:
+        src: ./books-app/frontend/
+        dest: /home/ubuntu/frontend/
+
     - name: Copy docker-compose.yml to server
       copy:
         src: ./books-app/docker-compose.yml

@@ -38,6 +38,8 @@ services:
     container_name: books-frontend
     ports:
       - "80:80"
+    volumes:
+      - ./frontend/index.html:/usr/share/nginx/html/index.html
     depends_on:
       - backend
 

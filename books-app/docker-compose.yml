@@ -14,12 +14,13 @@ services:
       - "5432:5432"
     healthcheck:
       test: ["CMD-SHELL", "pg_isready -U booksuser -d booksdb"]
-      interval: 5s
+      interval: 10s
       timeout: 5s
       retries: 10
+      start_period: 20s
 
   backend:
-    image: oskalibriya/books-backend:latest
+    image: oskalibriary/books-backend:latest
     container_name: books-backend
     environment:
       DB_HOST: db
@@ -32,14 +33,21 @@ services:
     depends_on:
       db:
         condition: service_healthy
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:5000/api/health"]
+      interval: 10s
+      timeout: 3s
+      retries: 5
+      start_period: 15s
 
   frontend:
-    image: oskalibriya/books-frontend:latest
+    image: oskalibriary/books-frontend:latest
     container_name: books-frontend
     ports:
       - "80:80"
     depends_on:
-      - backend
+      backend:
+        condition: service_healthy
 
 volumes:
   db_data:

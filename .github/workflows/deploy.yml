@@ -1,9 +1,7 @@
 name: Step 3 - Ansible Deploy
 
 on:
-  workflow_run:
-    workflows: ["Step 2 - Docker Build and Push"]
-    types: [completed]
+  # Оставили только ручной запуск (через интерфейс GitHub или API бота)
   workflow_dispatch:
     inputs:
       header_text:
@@ -21,7 +19,8 @@ jobs:
     runs-on: ubuntu-latest
     permissions:
       contents: write
-    if: ${{ github.event.workflow_run.conclusion == 'success' || github.event_name == 'workflow_dispatch' }}
+    # Теперь job запускается только при ручном вызове (workflow_dispatch)
+    if: ${{ github.event_name == 'workflow_dispatch' }}
     steps:
       - name: Checkout code
         uses: actions/checkout@v3
@@ -30,7 +29,8 @@ jobs:
           persist-credentials: true
 
       - name: Update header if triggered via ChatOps
-        if: github.event_name == 'workflow_dispatch' && github.event.inputs.header_text != ''
+        # Проверяем, был ли передан текст хедера во входных параметрах
+        if: github.event.inputs.header_text != ''
         run: |
           sed -i "s|<h1>.*</h1>|<h1>${{ github.event.inputs.header_text }}</h1>|g" books-app/frontend/index.html
           git config user.name "ChatOps Bot"

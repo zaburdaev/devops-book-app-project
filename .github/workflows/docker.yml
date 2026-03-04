@@ -1,0 +1,43 @@
+name: Step 2 - Docker Build and Push
+
+on:
+  push:
+    branches: [ main ]
+    # Пайплайн сработает только если изменились файлы в папке приложения
+    paths:
+      - 'books-app/**'
+  # Позволяет запускать пайплайн вручную кнопкой
+  workflow_dispatch:
+
+jobs:
+  build-and-push:
+    runs-on: ubuntu-latest
+    steps:
+      # 1. Скачиваем код из репозитория
+      - name: Checkout code
+        uses: actions/checkout@v3
+
+      # 2. Логинимся в Docker Hub используя секреты
+      - name: Login to Docker Hub
+        uses: docker/login-action@v2
+        with:
+          username: ${{ secrets.DOCKERHUB_USERNAME }}
+          password: ${{ secrets.DOCKERHUB_TOKEN }}
+
+      # 3. Собираем и пушим Backend
+      - name: Build and Push Backend
+        uses: docker/build-push-action@v4
+        with:
+          context: ./books-app/backend
+          push: true
+          # Образ будет называться: твой_логин/books-backend:latest
+          tags: ${{ secrets.DOCKERHUB_USERNAME }}/books-backend:latest
+
+      # 4. Собираем и пушим Frontend
+      - name: Build and Push Frontend
+        uses: docker/build-push-action@v4
+        with:
+          context: ./books-app/frontend
+          push: true
+          # Образ будет называться: твой_логин/books-frontend:latest
+          tags: ${{ secrets.DOCKERHUB_USERNAME }}/books-frontend:latest

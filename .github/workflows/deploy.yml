@@ -10,6 +10,11 @@ on:
         description: "New header text"
         required: false
         type: string
+      triggered_by:
+        description: "Who triggered this workflow"
+        required: false
+        default: "manual"
+        type: string
 
 jobs:
   deploy:

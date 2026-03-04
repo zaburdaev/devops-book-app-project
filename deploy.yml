@@ -18,7 +18,7 @@
 
     - name: Copy docker-compose.yml to server
       copy:
-        src: ./docker-compose.yml
+        src: ./books-app/docker-compose.yml
         dest: /home/ubuntu/docker-compose.yml
 
     - name: Pull latest images and run

@@ -1,0 +1,29 @@
+- name: Deploy Books App to EC2
+  hosts: all
+  become: yes
+  tasks:
+    - name: Update apt cache
+      apt: update_cache=yes
+
+    - name: Install Docker
+      apt:
+        name: ["docker.io", "docker-compose"]
+        state: present
+
+    - name: Ensure Docker is running
+      service:
+        name: docker
+        state: started
+        enabled: yes
+
+    - name: Copy docker-compose.yml to server
+      copy:
+        src: ./docker-compose.yml
+        dest: /home/ubuntu/docker-compose.yml
+
+    - name: Pull latest images and run
+      shell: |
+        docker-compose pull
+        docker-compose up -d
+      args:
+        chdir: /home/ubuntu

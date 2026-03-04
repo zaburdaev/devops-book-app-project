@@ -23,6 +23,7 @@
 
     - name: Pull latest images and run
       shell: |
+        docker-compose down || true
         docker-compose pull
         docker-compose up -d
       args:

@@ -42,6 +42,12 @@ resource "aws_instance" "books_server" {
   }
 }
 
+# Постоянный публичный IP (Elastic IP), привязанный к EC2
+resource "aws_eip" "books_eip" {
+  instance = aws_instance.books_server.id
+}
+
+# Выводим публичный IP (EIP)
 output "instance_public_ip" {
-  value = aws_instance.books_server.public_ip
+  value = aws_eip.books_eip.public_ip
 }

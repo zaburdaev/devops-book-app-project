@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """
 Telegram ChatOps Bot for DevOps Book App Project
-Updated with Requirements and Header/Status features
+Updated with Requirements, Header/Status and Project Info features
 """
 
 import os
@@ -27,7 +27,7 @@ logger = logging.getLogger(__name__)
 
 # --- Conversation states ---
 WAITING_FOR_PASSWORD = 0
-WAITING_FOR_HEADER = 1  # Новое состояние для ввода текста хедера
+WAITING_FOR_HEADER = 1
 
 # --- Environment variables ---
 TELEGRAM_BOT_TOKEN = os.getenv('TELEGRAM_BOT_TOKEN')
@@ -79,11 +79,13 @@ def main_menu_keyboard():
         [InlineKeyboardButton("🔍 Check Status", callback_data='status')],
         [InlineKeyboardButton(
             "🔥 KILLER FEATURE: Full Rebuild", callback_data='killer')],
+        [InlineKeyboardButton(
+            "ℹ️ Project Info", callback_data='project_info')],
     ]
     return InlineKeyboardMarkup(keyboard)
 
-# --- Handlers ---
 
+# --- Handlers ---
 
 async def start(update: Update, context: ContextTypes.DEFAULT_TYPE) -> int:
     user_id = update.effective_user.id
@@ -117,7 +119,6 @@ async def button_callback(update: Update, context: ContextTypes.DEFAULT_TYPE) ->
         await query.message.reply_html("🐳 <b>Docker Pipeline Started</b>\nBuilding and Pushing images...")
 
     elif data == 'ansible_config':
-        # Для лектора мы разделяем это логически, хотя воркфлоу может быть один
         trigger_workflow("deploy.yml")
         await query.message.reply_html("⚙️ <b>Ansible Config Started</b>\nInstalling Docker and preparing VM...")
 
@@ -131,9 +132,19 @@ async def button_callback(update: Update, context: ContextTypes.DEFAULT_TYPE) ->
             res = requests.get(APP_URL, timeout=5)
             resp_time = round(time.time() - start_time, 2)
             status = "✅ ONLINE" if res.status_code == 200 else f"⚠️ ERROR ({res.status_code})"
-            await query.message.reply_html(f"🔍 <b>System Status:</b>\n\nURL: {APP_URL}\nStatus: {status}\nResponse time: {resp_time}s")
+            await query.message.reply_html(
+                f"🔍 <b>System Status:</b>\n\n"
+                f"URL: {APP_URL}\n"
+                f"Status: {status}\n"
+                f"Response time: {resp_time}s"
+            )
         except Exception as e:
-            await query.message.reply_html(f"🔍 <b>System Status:</b>\n\nURL: {APP_URL}\nStatus: 🔴 OFFLINE\nError: {e}")
+            await query.message.reply_html(
+                f"🔍 <b>System Status:</b>\n\n"
+                f"URL: {APP_URL}\n"
+                f"Status: 🔴 OFFLINE\n"
+                f"Error: {e}"
+            )
 
     elif data == 'change_header':
         await query.message.reply_text("📝 Введите новый текст для Header (заголовка сайта):")
@@ -145,13 +156,46 @@ async def button_callback(update: Update, context: ContextTypes.DEFAULT_TYPE) ->
         trigger_workflow("deploy.yml")
         await query.message.reply_html("🔥 <b>KILLER FEATURE ACTIVATED</b>\nFull system rebuild triggered (10-15 min).")
 
+    elif data == 'project_info':
+        info_text = (
+            "ℹ️ <b>Books App — DevOps Project</b>\n\n"
+            "📚 <b>Описание / Description:</b>\n"
+            "Трёхуровневое веб-приложение (Frontend + Backend + DB), "
+            "развёрнутое с помощью полного CI/CD пайплайна.\n"
+            "A 3-tier web app (Frontend + Backend + DB) "
+            "deployed via a full CI/CD pipeline.\n\n"
+            "🛠 <b>Технологии / Tech Stack:</b>\n"
+            "• ☁️ AWS EC2 — облачный сервер\n"
+            "• 🏗️ Terraform — создание инфраструктуры (IaC)\n"
+            "• 🐳 Docker + Docker Compose — контейнеризация\n"
+            "• 🤖 Ansible — настройка сервера и деплой\n"
+            "• ⚙️ GitHub Actions — CI/CD автоматизация\n"
+            "• 📱 Telegram Bot — ChatOps управление\n\n"
+            "🏗 <b>Архитектура / Architecture:</b>\n"
+            "1. Terraform создаёт EC2 + Elastic IP в AWS\n"
+            "2. Docker собирает образы → пушит на Docker Hub\n"
+            "3. Ansible заходит по SSH → запускает docker-compose\n"
+            "4. Telegram Bot уведомляет о статусе пайплайна\n\n"
+            "🌐 <b>Приложение / App URL:</b>\n"
+            f"<a href='{APP_URL}'>{APP_URL}</a>\n\n"
+            "👤 <b>Автор / Author:</b> Vitalii Zaburdaiev\n"
+            "📦 <b>GitHub:</b> github.com/zaburdaev/devops-book-app-project\n"
+            "🎓 <b>Курс / Course:</b> DevOps with AI — 2025/2026"
+        )
+        await query.message.reply_html(info_text, reply_markup=main_menu_keyboard())
+
     return ConversationHandler.END
 
 
 async def handle_header_text(update: Update, context: ContextTypes.DEFAULT_TYPE) -> int:
     new_text = update.message.text
     trigger_workflow("deploy.yml", {"header_text": new_text})
-    await update.message.reply_html(f"✅ <b>Header Change Triggered!</b>\nNew text: <code>{new_text}</code>\nDeploying to site...", reply_markup=main_menu_keyboard())
+    await update.message.reply_html(
+        f"✅ <b>Header Change Triggered!</b>\n"
+        f"New text: <code>{new_text}</code>\n"
+        f"Deploying to site...",
+        reply_markup=main_menu_keyboard()
+    )
     return ConversationHandler.END
 
 

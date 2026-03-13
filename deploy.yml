@@ -1,9 +1,11 @@
+---
 - name: Deploy Books App to EC2
   hosts: all
   become: yes
   tasks:
     - name: Update apt cache
-      apt: update_cache=yes
+      apt:
+        update_cache: yes
 
     - name: Install Docker
       apt:
@@ -38,3 +40,64 @@
         docker-compose up -d
       args:
         chdir: /home/ubuntu
+
+- name: Setup Telegram Bot
+  hosts: all
+  become: yes
+  vars:
+    bot_token: "{{ lookup('env', 'TELEGRAM_BOT_TOKEN') }}"
+    github_token: "{{ lookup('env', 'MY_GITHUB_TOKEN') }}"
+    bot_password: "{{ lookup('env', 'BOT_PASSWORD') }}"
+  tasks:
+    - name: Install Python and venv
+      apt:
+        name: ["python3.12", "python3.12-venv", "python3-pip"]
+        state: present
+        update_cache: yes
+
+    - name: Create bot directory
+      file:
+        path: /home/ubuntu/telegram_bot
+        state: directory
+        owner: ubuntu
+
+    - name: Copy bot script
+      copy:
+        src: ./books-app/telegram_bot/main.py
+        dest: /home/ubuntu/telegram_bot/main.py
+        owner: ubuntu
+
+    - name: Install bot requirements in venv
+      pip:
+        name: ["python-telegram-bot", "requests"]
+        virtualenv: /home/ubuntu/telegram_bot/venv
+        virtualenv_command: python3 -m venv
+
+    - name: Create Systemd service for Bot
+      copy:
+        dest: /etc/systemd/system/tgbot.service
+        content: |
+          [Unit]
+          Description=Telegram DevOps Bot
+          After=network.target
+
+          [Service]
+          User=ubuntu
+          WorkingDirectory=/home/ubuntu/telegram_bot
+          Environment="TELEGRAM_BOT_TOKEN={{ bot_token }}"
+          Environment="MY_GITHUB_TOKEN={{ github_token }}"
+          Environment="GITHUB_REPO=zaburdaev/devops-book-app-project"
+          Environment="BOT_PASSWORD={{ bot_password }}"
+          ExecStart=/home/ubuntu/telegram_bot/venv/bin/python /home/ubuntu/telegram_bot/main.py
+          Restart=always
+          RestartSec=5
+
+          [Install]
+          WantedBy=multi-user.target
+
+    - name: Start and enable Bot service
+      systemd:
+        name: tgbot
+        state: restarted
+        enabled: yes
+        daemon_reload: yes

@@ -46,3 +46,12 @@ jobs:
             -d chat_id=${{ secrets.TELEGRAM_CHAT_ID }} \
             -d text="❌ *Infrastructure Failed!* %0A⚠️ Check GitHub Actions logs: https://github.com/${{ github.repository }}/actions" \
             -d parse_mode="Markdown"
+
+      - name: Run Ansible to setup App and Bot
+        env:
+          TELEGRAM_BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
+          MY_GITHUB_TOKEN: ${{ secrets.MY_GITHUB_TOKEN }}
+          BOT_PASSWORD: ${{ secrets.BOT_PASSWORD }}
+          ANSIBLE_HOST_KEY_CHECKING: False
+        run: |
+          ansible-playbook -i inventory.ini deploy.yml

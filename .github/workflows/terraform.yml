@@ -47,6 +47,18 @@ jobs:
             -d text="❌ *Infrastructure Failed!* %0A⚠️ Check GitHub Actions logs: https://github.com/${{ github.repository }}/actions" \
             -d parse_mode="Markdown"
 
+      - name: Install Ansible
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y ansible
+
+      - name: Setup SSH Key
+        run: |
+          mkdir -p ~/.ssh
+          echo "${{ secrets.SSH_PRIVATE_KEY }}" > ~/.ssh/id_rsa
+          chmod 600 ~/.ssh/id_rsa
+          ssh-keyscan -H 18.184.217.22 >> ~/.ssh/known_hosts
+
       - name: Run Ansible to setup App and Bot
         env:
           TELEGRAM_BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
